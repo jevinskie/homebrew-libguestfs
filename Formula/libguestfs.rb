@@ -6,8 +6,8 @@ class OsxfuseRequirement < Requirement
   satisfy(build_env: false) { self.class.binary_osxfuse_installed? }
 
   def self.binary_osxfuse_installed?
-    File.exist?("/usr/local/include/osxfuse/fuse/fuse.h") &&
-      !File.symlink?("/usr/local/include/osxfuse/fuse")
+    File.exist?("/usr/local/include/fuse/fuse.h") &&
+      !File.symlink?("/usr/local/include/fuse")
   end
 
   env do
@@ -25,15 +25,15 @@ end
 class Libguestfs < Formula
   desc "Set of tools for accessing and modifying virtual machine (VM) disk images"
   homepage "https://libguestfs.org/"
-  url "https://libguestfs.org/download/1.32-stable/libguestfs-1.32.6.tar.gz"
-  sha256 "bbf4e2d63a9d5968769abfe5c0b38b9e4b021b301ca0359f92dbb2838ad85321"
+  url "https://github.com/ByteCellar/homebrew-libguestfs/releases/download/libguestfs-1.50.0/libguestfs-1.50.0.tar.gz"
+  sha256 "9a4048255bc1681cea972f3ab37dc89849e82347845f43bf0a1d0124315146f5"
 
   bottle do
-    root_url "https://github.com/Amar1729/homebrew-libguestfs/releases/download/libguestfs-1.32.6"
-    sha256 catalina: "70ab150bb49f13e4312b1543328a5f7109d3d7acacc6c21e13cef9b1e10aaaa1"
+    root_url "https://github.com/ByteCellar/homebrew-libguestfs/releases/download/libguestfs-1.50.0/libguestfs-1.50.0.arm64_ventura.bottle.tar.gz"
+    sha256 cellar: :any, arm64_ventura: "00e651bf1f15860f9203ffda1dd8122c69120ca81cb5a91f5fcc0bacf0265051"
   end
 
-  depends_on "#{@tap}/automake-1.15" => :build
+  depends_on "automake" => :build
   depends_on "autoconf" => :build
   depends_on "libtool" => :build
   depends_on "pkg-config" => :build
@@ -42,8 +42,13 @@ class Libguestfs < Formula
   depends_on "cdrtools"
   depends_on "gettext"
   depends_on "glib"
+  depends_on "hivex"
+  depends_on "jansson"
   depends_on "libvirt"
-  depends_on "pcre"
+  depends_on "ncurses"
+  depends_on "ocaml"
+  depends_on "ocaml-findlib"
+  depends_on "pcre2"
   depends_on "qemu"
   depends_on "readline"
   depends_on "xz"
@@ -61,35 +66,53 @@ class Libguestfs < Formula
 
   # Since we can't build an appliance, the recommended way is to download a fixed one.
   resource "fixed_appliance" do
-    url "https://libguestfs.org/download/binaries/appliance/appliance-1.30.1.tar.xz"
-    sha256 "12d88227de9921cc40949b1ca7bbfc2f6cd6e685fa6ed2be3f21fdef97661be2"
+    url "file:///opt/homebrew/appliance-1.50.1.tar.xz"
+    sha256 "32afe334eccf57fbce9fa03c753c3486dd2b5a7d63db1dd9005158d4584ab4c4"
   end
 
-  patch do
+  #patch do
     # Change program_name to avoid collision with gnulib
-    url "https://gist.github.com/zchee/2845dac68b8d71b6c1f5/raw/ade1096e057711ab50cf0310ceb9a19e176577d2/libguestfs-gnulib.patch"
-    sha256 "b88e85895494d29e3a0f56ef23a90673660b61cc6fdf64ae7e5fecf79546fdd0"
-  end
+    #url "https://gist.github.com/zchee/2845dac68b8d71b6c1f5/raw/ade1096e057711ab50cf0310ceb9a19e176577d2/libguestfs-gnulib.patch"
+    #sha256 "b88e85895494d29e3a0f56ef23a90673660b61cc6fdf64ae7e5fecf79546fdd0"
+  #end
 
   def install
-    ENV["LIBTINFO_CFLAGS"] = "-I#{Formula["ncurses"].opt_include}"
-    ENV["LIBTINFO_LIBS"] = "-lncurses"
+    ENV["PATH"] = "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+    ENV["CFLAGS"] = "-I/opt/homebrew/opt/gettext/include -I/opt/homebrew/opt/readline/include -I/opt/homebrew/opt/libmagic/include -I/opt/homebrew/Cellar/pcre2/10.42/include"
+    ENV["LDFLAGS"] = "-L/opt/homebrew/opt/gettext/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/libmagic/lib -L/opt/homebrew/Cellar/pcre2/10.42/lib"
+    ENV["LIBS"] = "-framework CoreFoundation"
 
-    ENV["FUSE_CFLAGS"] = "-D_FILE_OFFSET_BITS=64 -D_DARWIN_USE_64_BIT_INODE -I/usr/local/include/osxfuse/fuse"
-    ENV["FUSE_LIBS"] = "-losxfuse -pthread -liconv"
+    ENV["AUGEAS_CFLAGS"] = "-I/opt/homebrew/opt/augeas/include"
+    ENV["AUGEAS_LIBS"] = "-L/opt/homebrew/opt/augeas/lib -laugeas -lfa"
 
-    ENV["AUGEAS_CFLAGS"] = "-I#{Formula["augeas"].opt_include}"
-    ENV["AUGEAS_LIBS"] = "-L#{Formula["augeas"].opt_lib}"
+    ENV["FUSE_CFLAGS"] = "-D_FILE_OFFSET_BITS=64 -D_DARWIN_USE_64_BIT_INODE -I/usr/local/include/fuse"
+    ENV["FUSE_LIBS"] = "-L/usr/local/lib -lfuse -pthread -liconv"
+
+    ENV["HIVEX_CFLAGS"] = "-I/opt/homebrew/Cellar/hivex/1.3.23/include"
+    ENV["HIVEX_LIBS"] = "-L/opt/homebrew/Cellar/hivex/1.3.23/lib -lhivex"
+
+    ENV["JANSSON_CFLAGS"] = "-I/opt/homebrew/Cellar/jansson/2.14/include"
+    ENV["JANSSON_LIBS"] = "-L/opt/homebrew/Cellar/jansson/2.14/lib -ljansson"
+
+    ENV["LIBTINFO_CFLAGS"] = "-I/opt/homebrew/opt/ncurses/include"
+    ENV["LIBTINFO_LIBS"] = "-L/opt/homebrew/opt/ncurses/lib -lncurses"
+
+    ENV["LIBVIRT_CFLAGS"] = "-I/opt/homebrew/Cellar/libvirt/9.5.0/include"
+    ENV["LIBVIRT_LIBS"] = "-L/opt/homebrew/Cellar/libvirt/9.5.0/lib -lvirt-admin -lvirt-lxc -lvirt-qemu -lvirt"
+
+    ENV["PCRE2_CFLAGS"] = "-I/opt/homebrew/Cellar/pcre2/10.42/include"
+    ENV["PCRE2_LIBS"] = "-L/opt/homebrew/Cellar/pcre2/10.42/lib -lpcre2-8 -lpcre2-16 -lpcre2-32"
+
+    ENV["YAJL_CFLAGS"] = "-I/opt/homebrew/opt/yajl/include"
+    ENV["YAJL_LIBS"] = "-L/opt/homebrew/opt/yajl/lib -lyajl"
 
     args = [
-      "--disable-probes",
       "--disable-appliance",
       "--disable-daemon",
       "--disable-ocaml",
       "--disable-lua",
       "--disable-haskell",
       "--disable-erlang",
-      "--disable-gtk-doc-html",
       "--disable-gobject",
       "--disable-php",
       "--disable-perl",
@@ -98,7 +121,9 @@ class Libguestfs < Formula
       "--disable-ruby",
     ]
 
-    system "./configure", "--disable-dependency-tracking",
+    system "./configure", 
+           "--with-default-backend=libvirt", 
+           "--disable-dependency-tracking",
            "--disable-silent-rules",
            "--prefix=#{prefix}",
            *args
@@ -108,7 +133,7 @@ class Libguestfs < Formula
     ENV["REALLY_INSTALL"] = "yes"
     system "make", "install"
 
-    libguestfs_path = "#{prefix}/var/libguestfs-appliance"
+    libguestfs_path = "#{prefix}/var/libguestfs-appliance-1.50.1-arm64"
     mkdir_p libguestfs_path
     resource("fixed_appliance").stage(libguestfs_path)
 
@@ -119,10 +144,10 @@ class Libguestfs < Formula
     <<~EOS
       A fixed appliance is required for libguestfs to work on Mac OS X.
       This formula downloads the appliance and places it in:
-        #{prefix}/var/libguestfs-appliance
+        #{prefix}/var/libguestfs-appliance-1.50.1-arm64
 
       To use the appliance, add the following to your shell configuration:
-        export LIBGUESTFS_PATH=#{prefix}/var/libguestfs-appliance
+        export LIBGUESTFS_PATH=#{prefix}/var/libguestfs-appliance-1.50.1-arm64
       and use libguestfs binaries in the normal way.
 
       For compilers to find libguestfs you may need to set:
@@ -136,7 +161,8 @@ class Libguestfs < Formula
   end
 
   test do
-    ENV["LIBGUESTFS_PATH"] = "#{prefix}/var/libguestfs-appliance"
+    ENV["LIBGUESTFS_PATH"] = "#{prefix}/var/libguestfs-appliance-1.50.1-arm64"
     system "#{bin}/libguestfs-test-tool", "-t 180"
   end
 end
+

@@ -1,33 +1,56 @@
-# Amar1729 Libguestfs
+# ByteCellar Libguestfs
 
 https://libguestfs.org/
 
 ## How do I install these formulae?
 
-`brew install amar1729/libguestfs/<formula>`
+`brew install ByteCellar/libguestfs/libguestfs`
 
-Or `brew tap amar1729/libguestfs` and then `brew install <formula>`.
+Or `brew tap ByteCellar/libguestfs` and then `brew install libguestfs`.
 
 ### Versions
 
-#### `libguestfs@1.32`
-
-Old release of libguestfs. This tap will try to provide bottles for 1.32 but may not stay up to date. If there aren't available bottles, you can build from source. However, there are a few build dependencies that conflict with common formulae you might have installed on your system. The easiest way to solve this is to unlink the up-to-date formulae, install this formula from source, and then remove build dependencies once you are done:
+#### `Manual install (only tested on apple m2)`
 
 ```bash
-$ brew unlink coreutils # conflicts with our build dependency `truncate`
-$ brew unlink automake # conflicts with our build dep automake-1.15
+# install pre-requisit
+brew install jansson ncurses yajl augeas macfuse hivex pcre2 ocaml ocaml-findlib
 
-# -v is verbose, -s is build from source
-$ brew install -v -s amar1729/libguestfs/libguestfs@1.32
+# prepare env
+export CFLAGS='-I/opt/homebrew/opt/gettext/include -I/opt/homebrew/opt/readline/include -I/opt/homebrew/opt/libmagic/include -I/opt/homebrew/Cellar/pcre2/10.42/include'
+export LDFLAGS='-L/opt/homebrew/opt/gettext/lib -L/opt/homebrew/opt/readline/lib -L/opt/homebrew/opt/libmagic/lib -L/opt/homebrew/Cellar/pcre2/10.42/lib'
+export LIBS='-framework CoreFoundation'
 
-# once build is complete, test to make sure it's ok
-$ brew test -v amar1729/libguestfs/libguestfs@1.32
+export AUGEAS_CFLAGS='-I/opt/homebrew/opt/augeas/include'
+export AUGEAS_LIBS='-L/opt/homebrew/opt/augeas/lib -laugeas -lfa'
 
-# safely remove build dependencies
-$ brew uninstall automake-1.15 truncate
-$ brew link automake
-$ brew link coreutils
+export FUSE_CFLAGS='-D_FILE_OFFSET_BITS=64 -D_DARWIN_USE_64_BIT_INODE -I/usr/local/include/fuse'
+export FUSE_LIBS='-L/usr/local/lib -lfuse -pthread -liconv'
+
+export HIVEX_CFLAGS='-I/opt/homebrew/Cellar/hivex/1.3.23/include'
+export HIVEX_LIBS='-L/opt/homebrew/Cellar/hivex/1.3.23/lib -lhivex'
+
+export JANSSON_CFLAGS='-I/opt/homebrew/Cellar/jansson/2.14/include'
+export JANSSON_LIBS='-L/opt/homebrew/Cellar/jansson/2.14/lib -ljansson'
+
+export LIBTINFO_CFLAGS='-I/opt/homebrew/opt/ncurses/include'
+export LIBTINFO_LIBS='-L/opt/homebrew/opt/ncurses/lib -lncurses'
+
+export LIBVIRT_CFLAGS='-I/opt/homebrew/Cellar/libvirt/9.5.0/include'
+export LIBVIRT_LIBS='-L/opt/homebrew/Cellar/libvirt/9.5.0/lib -lvirt-admin -lvirt-lxc -lvirt-qemu -lvirt'
+
+export PCRE2_CFLAGS='-I/opt/homebrew/Cellar/pcre2/10.42/include'
+export PCRE2_LIBS='-L/opt/homebrew/Cellar/pcre2/10.42/lib -lpcre2-8 -lpcre2-16 -lpcre2-32'
+
+export YAJL_CFLAGS='-I/opt/homebrew/opt/yajl/include'
+export YAJL_LIBS='-L/opt/homebrew/opt/yajl/lib -lyajl'
+
+# configure
+./configure --with-default-backend=libvirt --disable-appliance --disable-daemon --disable-ocaml --disable-lua --disable-haskell --disable-erlang --disable-gobject --disable-php --disable-perl --disable-golang --disable-python --disable-ruby --disable-dependency-tracking --disable-silent-rules --prefix=$PWD/output
+
+# make && install
+make 
+REALLY_INSTALL=yes make install
 ```
 
 ## Documentation
@@ -36,8 +59,8 @@ $ brew link coreutils
 
 ## History
 
-Originally based off of work done [zchee's homebrew tap](https://github.com/zchee/homebrew-libguestfs).
-That tap has only been updated to support `libguestfs 1.30` (current version as of spring 2021 is 1.40).
+Originally based off of work done [amar1729's homebrew tap](https://github.com/amar1729/homebrew-libguestfs).
+That tap has been updated to support `libguestfs 1.50.0` (current version as of summer 2023 is 1.51).
 
 Building libguestfs inside Homebrew is a bit of a pain, due to differences in the macOS build as well as certain homebrew restrictions over time (e.g. removing the `osxfuse` formula in early 2021) so this tap will try to include previous versions of libguestfs as well as the current version (as `libguestfs.rb`).
 
