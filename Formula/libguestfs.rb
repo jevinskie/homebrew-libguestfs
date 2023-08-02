@@ -29,7 +29,7 @@ class Libguestfs < Formula
   sha256 "9a4048255bc1681cea972f3ab37dc89849e82347845f43bf0a1d0124315146f5"
 
   bottle do
-    root_url "https://github.com/ByteCellar/homebrew-libguestfs/releases/download/libguestfs-1.50.0/libguestfs-1.50.0.arm64_ventura.bottle.tar.gz"
+    root_url "https://github.com/ByteCellar/homebrew-libguestfs/releases/download/libguestfs-1.50.0"
     sha256 cellar: :any, arm64_ventura: "00e651bf1f15860f9203ffda1dd8122c69120ca81cb5a91f5fcc0bacf0265051"
   end
 
